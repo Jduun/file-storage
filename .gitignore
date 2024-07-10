@@ -1,0 +1,5 @@
+.env
+.idea/
+.venv/
+root_folder/
+**/__pycache__/
