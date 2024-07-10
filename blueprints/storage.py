@@ -61,8 +61,7 @@ def upload_file():
     full_filepath = path_to_folder + full_filename
 
     os.makedirs(path_to_folder, exist_ok=True)
-    # if not os.path.exists(path_to_folder):
-    #   return jsonify({"error": "Folder doesn't exists"}), HTTPStatus.CONFLICT
+
     if os.path.isfile(full_filepath):
         return jsonify({"error": "File already exists"}), HTTPStatus.CONFLICT
 
@@ -114,83 +113,6 @@ def search_files():
     return jsonify([file.to_dict() for file in files]), HTTPStatus.OK
 
 
-@storage.route("/files/<string:file_id>/filename", methods=['PATCH'])
-def update_filename(file_id):
-    new_filename = request.args.get("filename")
-    if new_filename is None:
-        return jsonify({'error': 'Parameter not provided'}), HTTPStatus.BAD_REQUEST
-
-    file = models.File.query.get(file_id)
-    if file is None:
-        return "", HTTPStatus.NOT_FOUND
-
-    filepath = root_folder + file.filepath + file.filename + file.extension
-    new_filepath = root_folder + file.filepath + new_filename + file.extension
-
-    if os.path.exists(new_filepath):
-        if os.path.isfile(new_filepath):
-            return jsonify({"error": "File with same name already exists"}), HTTPStatus.CONFLICT
-
-    file.filename = new_filename
-    file.modified_at = datetime.utcnow()
-    connection.db.session.commit()
-    os.rename(filepath, new_filepath)
-
-    return jsonify(file.to_dict()), HTTPStatus.OK
-
-
-@storage.route("/files/<string:file_id>/filepath", methods=['PATCH'])
-def update_filepath(file_id):
-    new_filepath = request.args.get("filepath")
-    if new_filepath is None:
-        return jsonify({'error': 'Parameter not provided'}), HTTPStatus.BAD_REQUEST
-
-    if not new_filepath.endswith("/"):
-        new_filepath += "/"
-
-    file = models.File.query.get(file_id)
-    if file is None:
-        return "", HTTPStatus.NOT_FOUND
-
-    # Does the new path to folder exist?
-    old_path_to_folder = root_folder + file.filepath
-    new_path_to_folder = root_folder + new_filepath
-
-    os.makedirs(new_path_to_folder, exist_ok=True)
-    # if not os.path.exists(new_path_to_folder):
-    #    return jsonify({"error": "Folder doesn't exists"}), HTTPStatus.CONFLICT
-
-    # Does the file with the same name exist in folder?
-    old_full_filepath = old_path_to_folder + file.filename + file.extension
-    new_full_filepath = new_path_to_folder + file.filename + file.extension
-
-    if os.path.exists(new_full_filepath):
-        return jsonify({"error": "File with same name already exists"}), HTTPStatus.CONFLICT
-
-    os.replace(old_full_filepath, new_full_filepath)
-    file.filepath = new_filepath
-    file.modified_at = datetime.utcnow()
-    connection.db.session.commit()
-
-    return jsonify(file.to_dict()), HTTPStatus.OK
-
-
-@storage.route("/files/<string:file_id>/comment", methods=['PATCH'])
-def update_file_comment(file_id):
-    new_comment = request.args.get("comment")
-    if new_comment is None:
-        return jsonify({'error': 'Parameter not provided'}), HTTPStatus.BAD_REQUEST
-
-    file = models.File.query.get(file_id)
-    if file is None:
-        return "", HTTPStatus.NOT_FOUND
-
-    file.comment = new_comment
-    file.modified_at = datetime.utcnow()
-    connection.db.session.commit()
-    return jsonify(file.to_dict()), HTTPStatus.OK
-
-
 @storage.route("/files/sync", methods=['POST'])
 def sync_storage():
     storage_files = []
@@ -233,3 +155,69 @@ def sync_storage():
         connection.db.session.commit()
 
     return {"files_to_add": list(files_to_add), "files_to_delete": list(files_to_delete)}, HTTPStatus.OK
+
+
+@storage.route("/files/<string:file_id>", methods=['PUT'])
+def update_file(file_id):
+    file = models.File.query.get(file_id)
+    if file is None:
+        return "File with this id was not found", HTTPStatus.NOT_FOUND
+
+    data = request.get_json()
+
+    try:
+        if "filepath" in data:
+            file = update_filepath(file, data["filepath"])
+        if "filename" in data:
+            file = update_filename(file, data["filename"])
+    except FileExistsError as e:
+        return "File with same name already exist", HTTPStatus.CONFLICT
+    if "comment" in data:
+        file = update_file_comment(file, data["comment"])
+
+    return jsonify(file.to_dict()), HTTPStatus.OK
+
+
+def update_filename(file, new_filename):
+    filepath = root_folder + file.filepath + file.filename + file.extension
+    new_filepath = root_folder + file.filepath + new_filename + file.extension
+
+    if os.path.exists(new_filepath):
+        if os.path.isfile(new_filepath):
+            raise FileExistsError()
+
+    file.filename = new_filename
+    file.modified_at = datetime.utcnow()
+    connection.db.session.commit()
+    os.rename(filepath, new_filepath)
+
+    return file
+
+
+def update_filepath(file, new_filepath):
+    # Does the new path to folder exist?
+    old_path_to_folder = root_folder + file.filepath
+    new_path_to_folder = root_folder + new_filepath
+
+    os.makedirs(new_path_to_folder, exist_ok=True)
+
+    # Does the file with the same name exist in folder?
+    old_full_filepath = old_path_to_folder + file.filename + file.extension
+    new_full_filepath = new_path_to_folder + file.filename + file.extension
+
+    if os.path.exists(new_full_filepath):
+        raise FileExistsError()
+
+    os.replace(old_full_filepath, new_full_filepath)
+    file.filepath = new_filepath
+    file.modified_at = datetime.utcnow()
+    connection.db.session.commit()
+
+    return file
+
+
+def update_file_comment(file, new_comment):
+    file.comment = new_comment
+    file.modified_at = datetime.utcnow()
+    connection.db.session.commit()
+    return file
