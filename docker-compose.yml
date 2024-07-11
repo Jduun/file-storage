@@ -4,26 +4,26 @@ services:
   web:
     build: .
     container_name: flask-app
-    command: python app.py
+    restart: always
     volumes:
-      - .:/app
+      - ./app:/app
+      - ${ROOT_FOLDER}:/root_folder
     ports:
-      - "${FLASK_PORT}:5000"
+      - "${APP_PORT}:5000"
     depends_on:
       - db
     environment:
       - DATABASE_URI=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:5432/${POSTGRES_DB}
-      - ROOT_FOLDER=/app/root_folder
+      - ROOT_FOLDER=${ROOT_FOLDER}
   db:
     image: postgres:13
     container_name: postgres-db
+    restart: always
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - ${POSTGRES_DATA_PATH}:/var/lib/postgresql/data
     ports:
       - "${POSTGRES_PORT}:5432"
-volumes:
-  postgres_data:
