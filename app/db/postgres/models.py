@@ -13,12 +13,12 @@ class File(db.Model):
 
     def to_dict(self):
         return {
-            'id': self.id,
-            'filename': self.filename,
-            'extension': self.extension,
-            'size': self.size,
-            'filepath': self.filepath,
-            'created_at': self.created_at.isoformat() if self.created_at else None,
-            'modified_at': self.modified_at.isoformat() if self.modified_at else None,
-            'comment': self.comment,
+            "id": self.id,
+            "filename": self.filename,
+            "extension": self.extension,
+            "size": self.size,
+            "filepath": self.filepath,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "modified_at": self.modified_at.isoformat() if self.modified_at else None,
+            "comment": self.comment,
         }
