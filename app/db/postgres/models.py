@@ -9,7 +9,7 @@ class File(db.Model):
     filepath = db.Column(db.String, nullable=False)
     created_at = db.Column(db.DateTime, nullable=False)
     modified_at = db.Column(db.DateTime)
-    comment = db.Column(db.String)
+    comment = db.Column(db.String(255))
 
     def to_dict(self):
         return {
