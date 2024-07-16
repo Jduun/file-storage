@@ -10,6 +10,8 @@ services:
       - ${ROOT_FOLDER}:/root_folder
     ports:
       - "${APP_PORT}:5000"
+    env_file:
+      - .env
     depends_on:
       - db
     environment:
