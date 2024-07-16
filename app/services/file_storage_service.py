@@ -1,18 +1,19 @@
 import os
-from db.postgres import connection as conn
-from db.postgres.models import File
+from db.postgres import db
+from db.postgres import File
 from datetime import datetime
 import uuid
 from sqlalchemy import func
+from sqlalchemy.exc import SQLAlchemyError
+from exceptions import *
 
 
-class FileService:
+class FileStorageService:
     ROOT_FOLDER = os.getenv("ROOT_FOLDER")
 
     @staticmethod
     def get_file_by_id(file_id):
-        file = File.query.get(file_id)
-        return file
+        return db.session.get(File, file_id)
 
     @staticmethod
     def get_files_in_folder(path_to_folder="/"):
@@ -25,15 +26,15 @@ class FileService:
     @staticmethod
     def delete_file(file):
         try:
-            conn.db.session.delete(file)
-            conn.db.session.commit()
-        except Exception as e:
-            conn.db.session.rollback()
-            raise e
+            db.session.delete(file)
+            db.session.commit()
+        except SQLAlchemyError:
+            db.session.rollback()
+            raise DatabaseDeleteError
         try:
-            os.remove(FileService.get_filepath(file))
-        except OSError as e:
-            raise e
+            os.remove(FileStorageService.get_abs_path(file))
+        except OSError:
+            raise FileDeleteError
 
     @staticmethod
     def update_file(file, new_data):
@@ -41,59 +42,60 @@ class FileService:
             new_filepath = new_data["filepath"]
             if not new_filepath.endswith("/"):
                 new_filepath += "/"
-            # Does the new path to folder exist?
-            old_path_to_folder = FileService.ROOT_FOLDER + file.filepath
-            new_path_to_folder = FileService.ROOT_FOLDER + new_filepath
+
+            old_path_to_folder = FileStorageService.ROOT_FOLDER + file.filepath
+            new_path_to_folder = FileStorageService.ROOT_FOLDER + new_filepath
 
             os.makedirs(new_path_to_folder, exist_ok=True)
 
-            # Does the file with the same name exist in folder?
             old_full_filepath = old_path_to_folder + file.filename + file.extension
             new_full_filepath = new_path_to_folder + file.filename + file.extension
 
-            # ERROR HERE
             if os.path.exists(new_filepath):
                 if os.path.isfile(new_filepath):
                     raise FileExistsError()
             try:
                 file.filepath = new_filepath
                 file.modified_at = datetime.utcnow()
-                conn.db.session.commit()
-            except Exception as e:
-                conn.db.session.rollback()
-                raise e
+                db.session.commit()
+            except SQLAlchemyError:
+                db.session.rollback()
+                raise DatabaseUpdateError
             try:
                 os.replace(old_full_filepath, new_full_filepath)
-            except OSError as e:
-                raise e
+            except OSError:
+                raise FileMoveError
         if "filename" in new_data:
             new_filename = new_data["filename"]
-            filepath = FileService.get_filepath(file)
+            filepath = FileStorageService.get_abs_path(file)
             new_filepath = (
-                FileService.ROOT_FOLDER + file.filepath + new_filename + file.extension
+                FileStorageService.ROOT_FOLDER
+                + file.filepath
+                + new_filename
+                + file.extension
             )
             if os.path.isfile(new_filepath) and new_filename != file.filename:
-                raise FileExistsError()
+                raise FileExistsError
             try:
                 file.filename = new_filename
                 file.modified_at = datetime.utcnow()
-                conn.db.session.commit()
-            except Exception as e:
-                conn.db.session.rollback()
-                raise e
+                db.session.commit()
+            except SQLAlchemyError:
+                db.session.rollback()
+                raise DatabaseUpdateError
             try:
                 os.rename(filepath, new_filepath)
-            except OSError as e:
-                raise e
+            except OSError:
+                raise FileRenameError
         if "comment" in new_data:
             new_comment = new_data["comment"]
             try:
                 file.comment = new_comment
                 file.modified_at = datetime.utcnow()
-                conn.db.session.commit()
-            except Exception as e:
-                conn.db.session.rollback()
-                raise e
+                db.session.commit()
+            except SQLAlchemyError:
+                db.session.rollback()
+                raise DatabaseUpdateError
         return file
 
     @staticmethod
@@ -101,7 +103,8 @@ class FileService:
         full_filename = uploaded_file.filename
         if not data["filepath"].endswith("/"):
             data["filepath"] += "/"
-        path_to_folder = FileService.ROOT_FOLDER + data["filepath"]
+
+        path_to_folder = FileStorageService.ROOT_FOLDER + data["filepath"]
         full_filepath = path_to_folder + full_filename
 
         os.makedirs(path_to_folder, exist_ok=True)
@@ -110,7 +113,6 @@ class FileService:
 
         size = len(uploaded_file.read())
         uploaded_file.seek(0)
-
         filename, extension = os.path.splitext(full_filename)
         created_at = datetime.utcnow().isoformat()
 
@@ -126,30 +128,42 @@ class FileService:
         )
 
         try:
-            conn.db.session.add(new_file)
-            conn.db.session.commit()
-        except Exception as e:
-            conn.db.session.rollback()
-            raise e
+            db.session.add(new_file)
+            db.session.commit()
+        except SQLAlchemyError:
+            db.session.rollback()
+            raise DatabaseAddError
         try:
             uploaded_file.save(full_filepath)
-        except OSError as e:
-            raise e
+        except OSError:
+            raise FileSaveError
 
         return new_file
 
     @staticmethod
-    def get_filepath(file):
-        return FileService.ROOT_FOLDER + file.filepath + file.filename + file.extension
+    def get_abs_path(file):
+        return (
+            FileStorageService.ROOT_FOLDER
+            + file.filepath
+            + file.filename
+            + file.extension
+        )
+
+    @staticmethod
+    def get_rel_path(file):
+        return file.filepath + file.filename + file.extension
 
     @staticmethod
     def sync_storage():
         storage_files = []
-        for path, subdirs, files in os.walk(FileService.ROOT_FOLDER):
+        for path, subdirs, files in os.walk(FileStorageService.ROOT_FOLDER):
             for name in files:
                 filename, ext = os.path.splitext(name)
                 storage_files.append(
-                    path.removeprefix(FileService.ROOT_FOLDER) + "/" + filename + ext
+                    path.removeprefix(FileStorageService.ROOT_FOLDER)
+                    + "/"
+                    + filename
+                    + ext
                 )
 
         db_files = [
@@ -172,20 +186,20 @@ class FileService:
                 == file_to_delete
             ).first()
             try:
-                conn.db.session.delete(file)
-                conn.db.session.commit()
-            except Exception as e:
-                conn.db.session.rollback()
-                raise e
+                db.session.delete(file)
+                db.session.commit()
+            except SQLAlchemyError:
+                db.session.rollback()
+                raise DatabaseDeleteError
 
         for file_to_add in files_to_add:
             filepath = os.path.dirname(file_to_add)
             filepath += "/" if filepath != "/" else ""
             filename = os.path.basename(file_to_add)
             filename, ext = os.path.splitext(filename)
-            size = os.path.getsize(FileService.ROOT_FOLDER + file_to_add)
+            size = os.path.getsize(FileStorageService.ROOT_FOLDER + file_to_add)
             created_at = datetime.fromtimestamp(
-                os.path.getctime(FileService.ROOT_FOLDER + file_to_add)
+                os.path.getctime(FileStorageService.ROOT_FOLDER + file_to_add)
             )
 
             new_file = File(
@@ -199,10 +213,10 @@ class FileService:
                 comment="",
             )
             try:
-                conn.db.session.add(new_file)
-                conn.db.session.commit()
-            except Exception as e:
-                conn.db.session.rollback()
-                raise e
+                db.session.add(new_file)
+                db.session.commit()
+            except SQLAlchemyError:
+                db.session.rollback()
+                raise DatabaseAddError
 
         return files_to_add, files_to_delete
