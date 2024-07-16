@@ -7,7 +7,7 @@ services:
     restart: always
     volumes:
       - ./app:/app
-      - ${ROOT_FOLDER}:/root_folder
+      - ${ROOT_FOLDER}:${ROOT_FOLDER}
     ports:
       - "${APP_PORT}:5000"
     env_file:
