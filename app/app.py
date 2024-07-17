@@ -1,6 +1,5 @@
 from flask import Flask
-from config import Config
-from blueprints import storage
+from blueprints import storage, image
 from db.postgres import db
 
 
@@ -11,4 +10,5 @@ def create_app(config) -> Flask:
     with app.app_context():
         db.create_all()
     app.register_blueprint(storage)
+    app.register_blueprint(image)
     return app
