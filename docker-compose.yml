@@ -29,3 +29,26 @@ services:
       - ${POSTGRES_DATA_PATH}:/var/lib/postgresql/data
     ports:
       - "${POSTGRES_PORT}:5432"
+  worker:
+    build: .
+    restart: always
+    volumes:
+      - ${ROOT_FOLDER}:${ROOT_FOLDER}
+    command: python /app/rabbitmq/worker.py
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    deploy:
+      replicas: 3
+  rabbitmq:
+    image: "rabbitmq:3-management"
+    container_name: rabbitmq
+    restart: always
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: [ "CMD", "rabbitmqctl", "status" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
