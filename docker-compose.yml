@@ -4,7 +4,7 @@ services:
   web:
     build: .
     container_name: flask-app
-    restart: always
+    restart: unless-stopped
     volumes:
       - ./app:/app
       - ${ROOT_FOLDER}:${ROOT_FOLDER}
@@ -20,7 +20,7 @@ services:
   db:
     image: postgres:13
     container_name: postgres-db
-    restart: always
+    restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -31,7 +31,7 @@ services:
       - "${POSTGRES_PORT}:5432"
   worker:
     build: .
-    restart: always
+    restart: unless-stopped
     volumes:
       - ${ROOT_FOLDER}:${ROOT_FOLDER}
     command: python /app/rabbitmq/worker.py
@@ -43,7 +43,7 @@ services:
   rabbitmq:
     image: "rabbitmq:3-management"
     container_name: rabbitmq
-    restart: always
+    restart: unless-stopped
     ports:
       - "5672:5672"
       - "15672:15672"
