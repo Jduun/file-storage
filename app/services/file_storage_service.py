@@ -43,6 +43,9 @@ class FileStorageService:
             if not new_filepath.endswith("/"):
                 new_filepath += "/"
 
+            if not FileStorageService.is_valid_path(new_data["filepath"]):
+                raise InvalidPathError
+
             old_path_to_folder = FileStorageService.ROOT_FOLDER + file.filepath
             new_path_to_folder = FileStorageService.ROOT_FOLDER + new_filepath
 
@@ -107,6 +110,9 @@ class FileStorageService:
             data["comment"] = ""
         if not data["filepath"].endswith("/"):
             data["filepath"] += "/"
+
+        if not FileStorageService.is_valid_path(data["filepath"]):
+            raise InvalidPathError
 
         path_to_folder = FileStorageService.ROOT_FOLDER + data["filepath"]
         full_filepath = path_to_folder + full_filename
@@ -224,3 +230,11 @@ class FileStorageService:
                 raise DatabaseAddError
 
         return files_to_add, files_to_delete
+
+    @staticmethod
+    def is_valid_path(path: str) -> bool:
+        items = path.split("/")
+        for item in items:
+            if set(item) == set(".") or item == "~":
+                return False
+        return True

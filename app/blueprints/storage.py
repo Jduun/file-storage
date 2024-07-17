@@ -4,6 +4,7 @@ from http import HTTPStatus
 from services import FileStorageService
 from exceptions import *
 
+
 storage = Blueprint("storage", __name__)
 
 
@@ -60,6 +61,11 @@ def upload_file():
 
     try:
         new_file = FileStorageService.upload_file(uploaded_file, data)
+    except InvalidPathError:
+        return (
+            jsonify({"error": "Filepath is not valid"}),
+            HTTPStatus.CONFLICT,
+        )
     except FileExistsError:
         return (
             jsonify({"error": "File with same name already exist"}),
@@ -125,6 +131,11 @@ def update_file(file_id):
     new_data = request.get_json()
     try:
         file = FileStorageService.update_file(file, new_data)
+    except InvalidPathError:
+        return (
+            jsonify({"error": "Filepath is not valid"}),
+            HTTPStatus.CONFLICT,
+        )
     except FileExistsError:
         return (
             jsonify({"error": "File with same name already exist"}),
