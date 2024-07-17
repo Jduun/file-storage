@@ -101,6 +101,10 @@ class FileStorageService:
     @staticmethod
     def upload_file(uploaded_file, data):
         full_filename = uploaded_file.filename
+        if "filepath" not in data:
+            data["filepath"] = "/"
+        if "comment" not in data:
+            data["comment"] = ""
         if not data["filepath"].endswith("/"):
             data["filepath"] += "/"
 
