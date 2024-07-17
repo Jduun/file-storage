@@ -18,7 +18,5 @@ def publish_message(message):
         connection.close()
     except pika.exceptions.AMQPConnectionError:
         logging.error("RabbitMQ connection error")
-        raise
     except Exception as e:
         logging.error(f"Something went wrong: {e}")
-        raise
