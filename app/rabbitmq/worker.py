@@ -26,6 +26,7 @@ def callback(ch, method, properties, body):
         logging.info(" [x] Done")
         ch.basic_ack(delivery_tag=method.delivery_tag)
     except Exception as e:
+        ch.basic_reject(delivery_tag=method.delivery_tag, requeue=False)
         logging.error(f"Handling message error: {e}")
 
 
