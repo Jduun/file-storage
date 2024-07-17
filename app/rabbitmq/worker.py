@@ -1,31 +1,44 @@
 import json
 import pika
-from PIL import Image
+
+# from pika import exceptions
+from PIL import Image, UnidentifiedImageError
 import logging
 
 
 def resize_image(image_path, new_width, new_height):
-    original_image = Image.open(image_path)
-    resized_image = original_image.resize((new_width, new_height))
-    resized_image.save(image_path)
+    try:
+        original_image = Image.open(image_path)
+        resized_image = original_image.resize((new_width, new_height))
+        resized_image.save(image_path)
+    except Exception as e:
+        logging.error(f"Image processing error: {e}")
 
 
 def callback(ch, method, properties, body):
-    logging.info(f" [x] Received {body.decode()}")
-    task = json.loads(body)
-    image_path = task["image_path"]
-    new_width = task["new_width"]
-    new_height = task["new_height"]
-    resize_image(image_path, new_width, new_height)
-    logging.info(" [x] Done")
-    ch.basic_ack(delivery_tag=method.delivery_tag)
+    try:
+        logging.info(f" [x] Received {body.decode()}")
+        task = json.loads(body)
+        image_path = task["image_path"]
+        new_width = task["new_width"]
+        new_height = task["new_height"]
+        resize_image(image_path, new_width, new_height)
+        logging.info(" [x] Done")
+        ch.basic_ack(delivery_tag=method.delivery_tag)
+    except Exception as e:
+        logging.error(f"Handling message error: {e}")
 
 
-connection = pika.BlockingConnection(pika.ConnectionParameters(host="rabbitmq"))
-channel = connection.channel()
-channel.queue_declare(queue="task_queue", durable=True)
-logging.info(" [*] Waiting for messages. To exit press CTRL+C")
+try:
+    connection = pika.BlockingConnection(pika.ConnectionParameters(host="rabbitmq"))
+    channel = connection.channel()
+    channel.queue_declare(queue="task_queue", durable=True)
+    logging.info(" [*] Waiting for messages. To exit press CTRL+C")
 
-channel.basic_qos(prefetch_count=1)
-channel.basic_consume(queue="task_queue", on_message_callback=callback)
-channel.start_consuming()
+    channel.basic_qos(prefetch_count=1)
+    channel.basic_consume(queue="task_queue", on_message_callback=callback)
+    channel.start_consuming()
+except pika.exceptions.AMQPConnectionError:
+    logging.error("RabbitMQ connection error")
+except Exception as e:
+    logging.error(f"Something went wrong: {e}")
