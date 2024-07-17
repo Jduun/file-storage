@@ -24,3 +24,7 @@ class FileRenameError(Exception):
 
 class FileSaveError(Exception):
     pass
+
+
+class InvalidPathError(Exception):
+    pass
