@@ -1,2 +1,2 @@
--r requirenments.txt
+-r requirements.txt
 pytest==8.2.2
