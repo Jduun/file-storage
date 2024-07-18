@@ -1,8 +1,6 @@
 import json
 import pika
-
-# from pika import exceptions
-from PIL import Image, UnidentifiedImageError
+from PIL import Image
 import logging
 
 
@@ -13,6 +11,7 @@ def resize_image(image_path, new_width, new_height):
         resized_image.save(image_path)
     except Exception as e:
         logging.error(f"Image processing error: {e}")
+        raise
 
 
 def callback(ch, method, properties, body):
