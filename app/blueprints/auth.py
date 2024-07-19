@@ -32,7 +32,9 @@ def login():
     user_login = data["login"]
     user_password = data["password"]
 
-    if user_login != os.getenv("USER_LOGIN") or user_password != os.getenv("USER_PASSWORD"):
+    if user_login != os.getenv("USER_LOGIN") or user_password != os.getenv(
+        "USER_PASSWORD"
+    ):
         return (
             "Invalid login or password",
             HTTPStatus.UNAUTHORIZED,
