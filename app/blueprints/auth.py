@@ -4,6 +4,7 @@ import uuid
 from exceptions import *
 from services import auth_service
 from . import image, storage
+import os
 
 auth = Blueprint("auth", __name__)
 
@@ -31,7 +32,7 @@ def login():
     user_login = data["login"]
     user_password = data["password"]
 
-    if user_login != "admin" or user_password != "admin":
+    if user_login != os.getenv("USER_LOGIN") or user_password != os.getenv("USER_PASSWORD"):
         return (
             "Invalid login or password",
             HTTPStatus.UNAUTHORIZED,
