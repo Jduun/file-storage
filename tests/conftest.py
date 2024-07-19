@@ -5,12 +5,14 @@ from config import TestConfig
 import shutil
 from . import ROOT_FOLDER, test_files
 import os
+import requests
 
 
 @pytest.fixture
 def app():
     app = create_app(TestConfig)
     init_data(app)
+    auto_auth()
     yield app
     clear_data(app)
 
@@ -40,3 +42,10 @@ def clear_data(app):
         db.drop_all()
     if os.path.exists(ROOT_FOLDER):
         shutil.rmtree(ROOT_FOLDER)
+
+
+def auto_auth():
+    response = requests.post(
+        "http://localhost:5000/login",
+        json={"login": os.getenv("USER_LOGIN"), "password": os.getenv("USER_PASSWORD")},
+    )

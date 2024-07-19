@@ -1,8 +1,9 @@
 from _datetime import datetime
 from db.postgres import File
 import uuid
-import os
 import random
+import os
+
 
 ROOT_FOLDER = os.getenv("ROOT_FOLDER")
 NUM_FIlES = 5
