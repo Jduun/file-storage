@@ -22,3 +22,7 @@ class File(db.Model):
             "modified_at": self.modified_at.isoformat() if self.modified_at else None,
             "comment": self.comment,
         }
+
+
+class Session(db.Model):
+    session_id = db.Column(db.String(36), primary_key=True)
