@@ -1,6 +1,5 @@
 import os
-from db.postgres import db
-from db.postgres import File
+from db.postgres import db, File
 from datetime import datetime
 import uuid
 from sqlalchemy import func
