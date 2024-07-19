@@ -3,6 +3,8 @@ import pika
 from PIL import Image
 import logging
 
+logging.basicConfig(level=logging.INFO)
+
 
 def resize_image(image_path, new_width, new_height):
     try:
