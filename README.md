@@ -2,43 +2,144 @@
 
 Приложение написано на фреймфорке Flask с использованием базы данных PostgreSQL.
 
-## Установка и запуск приложения
+## Установка
+Склонируйте репозиторий и перейдите в папку с проектом:
+```sh
+git clone https://github.com/Jduun/file-storage.git
+cd file-storage/
+```
+Сделайте копию файла `.env.example`:
+```sh 
+cp .env.example .env
+```
+С помощью текстового редактора откройте `.env` файл и установите собственные значения для переменных окружения.
+Подробнее о переменных окружения:
 
+| Переменная             | Пример значения       | Назначение                                                |
+| ---------------------- |-----------------------|-----------------------------------------------------------|
+| **POSTGRES\_USER**     | `postgres`            | Имя пользователя базы данных PostgreSQL                   |
+| **POSTGRES\_PASSWORD** | `12345`               | Пароль пользователя PostgreSQL                            |
+| **POSTGRES\_HOST**     | `file-storage-db`     | Хост или имя контейнера, где запущен PostgreSQL           |
+| **POSTGRES\_DB**       | `postgres`            | Имя базы данных PostgreSQL, к которой подключается приложение |
+| **POSTGRES\_PORT**     | `5432`                | Порт PostgreSQL                                           |
+| **POSTGRES\_FOLDER**   | `/data/postgres_data` | Локальный путь/папка для хранения данных PostgreSQL       |
+| **APP\_PORT**          | `5000`                | Порт, на котором запускается само приложение              |
+| **ROOT\_FOLDER**       | `/data/root_folder`   | Папка для хранения файлов, которые загружают пользователи |
+| **DEBUG**              | `False`               | Режим отладки: `True` в разработке и `False` в продакшене |
 
-1. Склонируйте репозиторий:
-   ```sh
-   git clone https://github.com/Jduun/file-storage.git
-   cd file-storage/
-   ```
-   
-2. **Настройка переменных окружения:**
+Сборка приложения:
+```sh
+docker build -t file-storage:latest .
+docker-compose up --build
+```
 
-    Создайте и заполните `.env` в корневой директории проекта в соответствии с примером `.env.example`
+---
 
-3. **Сборка и запуск Docker контейнеров:**
+## API
+### Загрузка файла
+**Запрос**: `POST /api/files` `multipart/form-data`
+- `file`: `Шаблоны корпоративных прилож.pdf`
+- `json`: `{"filepath": "/books/", "comment": "Learn patterns"}` 
 
-      ```sh
-      docker-compose up --build
-      ```
-   
-4. **Проверка работоспособности:**
+**Ответ**: `application/json` `200 OK`
+```json
+{
+    "comment": "Do you know what linked list is?",
+    "created_at": "Wed, 17 Sep 2025 07:31:12 GMT",
+    "extension": ".pdf",
+    "filename": "Шаблоны корпоративных прилож",
+    "filepath": "/books/",
+    "id": 13,
+    "size_bytes": 57034527,
+    "updated_at": "Wed, 17 Sep 2025 07:31:12 GMT"
+}
+```
 
-   Загрузите файл в хранилище:
-   ```sh
-   curl -X POST http://localhost:5000/files \
-        -F "file=@/path/to/your/file" \
-        -F "json={\"filepath\":\"/storage/folder/\", \"comment\":\"my comment\"}"
-   ```
-   
-   Проверьте появился ли он в хранилище:
-   ```sh
-   curl -X GET http://localhost:5000/files
-   ```
-   Чтобы проверить работоспособность RabbitMQ, запустите ```scripts/rabbitmq_test.py``` и перейдите на ```http://localhost:15672``` для взаимодействия с веб интерфейсом RabbitMQ и отслеживания активности.
-5. **Тестирование приложения**
+### Получение всех файлов
+**Запрос**: `GET /api/files`
 
-   Создайте и заполните `.env.dev` в корневой директории проекта в соответствии с примером `.env.example`.   
-   Тестирование приложения производится в отдельных docker-контейнерах:
-   ```sh
-   docker-compose -f docker-compose.dev.yml --env-file .env.dev up --build
-   ```
+**Ответ**: `application/json` `200 OK`
+```json
+[
+    {
+        "comment": "Do you know what linked list is?",
+        "created_at": "Wed, 17 Sep 2025 07:28:29 GMT",
+        "extension": ".pdf",
+        "filename": "grokaem_algoritmyi",
+        "filepath": "/books/",
+        "id": 12,
+        "size_bytes": 72825117,
+        "updated_at": "Wed, 17 Sep 2025 07:28:29 GMT"
+    },
+    {
+        "comment": "Learn patterns",
+        "created_at": "Wed, 17 Sep 2025 07:31:12 GMT",
+        "extension": ".pdf",
+        "filename": "Шаблоны корпоративных прилож",
+        "filepath": "/books/",
+        "id": 13,
+        "size_bytes": 57034527,
+        "updated_at": "Wed, 17 Sep 2025 07:31:12 GMT"
+    }
+]
+```
+### Получение файла по `id`
+**Запрос**: `GET /api/files/12`
+
+**Ответ**: `application/json` `200 OK`
+```json
+{
+    "comment": "Do you know what linked list is?",
+    "created_at": "Wed, 17 Sep 2025 07:28:29 GMT",
+    "extension": ".pdf",
+    "filename": "grokaem_algoritmyi",
+    "filepath": "/books/",
+    "id": 12,
+    "size_bytes": 72825117,
+    "updated_at": "Wed, 17 Sep 2025 07:28:29 GMT"
+}
+```
+
+### Обновление информации о файле
+**Запрос**: `PUT /api/files/12` `application/json`
+```json
+{
+    "comment": "Book about algorithms",
+    "filename": "grokaem",
+    "filepath": "/algorithms/"
+}
+```
+
+**Ответ**: `application/json` `200 OK`
+```json
+{
+    "comment": "Book about algorithms",
+    "created_at": "Wed, 17 Sep 2025 07:28:29 GMT",
+    "extension": ".pdf",
+    "filename": "grokaem",
+    "filepath": "/algorithms/",
+    "id": 12,
+    "size_bytes": 72825117,
+    "updated_at": "Wed, 17 Sep 2025 07:28:29 GMT"
+}
+```
+
+### Удаление файла
+**Запрос**: `DELETE /api/files/12`
+
+**Ответ**: `application/json` `200 OK`
+```json
+{
+    "comment": "Book about algorithms",
+    "created_at": "Wed, 17 Sep 2025 07:28:29 GMT",
+    "extension": ".pdf",
+    "filename": "grokaem",
+    "filepath": "/algorithms/",
+    "id": 12,
+    "size_bytes": 72825117,
+    "updated_at": "Wed, 17 Sep 2025 07:42:19 GMT"
+}
+```
+
+### Скачивание файла
+**Запрос**: `GET /api/files/13/download`

@@ -1,8 +1,11 @@
 FROM python:3.10
+
 WORKDIR /app
-RUN pip install --upgrade pip
-COPY requirements.txt requirements.txt
-RUN pip install -r requirements.txt
-COPY ./app /app
-EXPOSE 5000
-CMD ["python", "run.py"]
+RUN apt update && apt install
+
+COPY requirements.txt /app/
+RUN pip install --no-cache-dir -r requirements.txt
+COPY . .
+
+ENV PYTHONPATH=/app
+CMD ["uwsgi", "--ini", "uwsgi.ini"]
