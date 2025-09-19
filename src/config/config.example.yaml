@@ -1,0 +1,10 @@
+root_folder: "/root_folder"
+debug: false
+
+postgres:
+  user: "postgres"
+  password: "postgres"
+  host: "file-storage-db"
+  db: "postgres"
+  folder: "/postgres_data"
+  port: 5432

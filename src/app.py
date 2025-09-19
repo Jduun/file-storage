@@ -1,3 +1,6 @@
+import os
+import logging
+
 from flask import Flask, jsonify
 from flask.json.provider import DefaultJSONProvider
 from pydantic import BaseModel
@@ -12,6 +15,10 @@ from src.routers import files_routers
 def setup_app() -> Flask:
     current_app = Flask(__name__)
     setup_pg()
+    if config.debug:
+        logging.basicConfig(level=logging.DEBUG)
+    else:
+        logging.basicConfig(level=logging.INFO)
     return current_app
 
 
@@ -37,4 +44,7 @@ def handle_app_exception(e: ModuleException):
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", debug=config.debug)
+    app.run(
+        host=os.getenv("APP_HOST", "0.0.0.0"),
+        debug=config.debug,
+    )

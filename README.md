@@ -1,37 +1,56 @@
 # File Storage
 
-Приложение написано на фреймфорке Flask с использованием базы данных PostgreSQL.
-
 ## Установка
-Склонируйте репозиторий и перейдите в папку с проектом:
-```sh
-git clone https://github.com/Jduun/file-storage.git
-cd file-storage/
-```
-Сделайте копию файла `.env.example`:
-```sh 
-cp .env.example .env
-```
-С помощью текстового редактора откройте `.env` файл и установите собственные значения для переменных окружения.
-Подробнее о переменных окружения:
 
-| Переменная             | Пример значения       | Назначение                                                |
-| ---------------------- |-----------------------|-----------------------------------------------------------|
-| **POSTGRES\_USER**     | `postgres`            | Имя пользователя базы данных PostgreSQL                   |
-| **POSTGRES\_PASSWORD** | `12345`               | Пароль пользователя PostgreSQL                            |
-| **POSTGRES\_HOST**     | `file-storage-db`     | Хост или имя контейнера, где запущен PostgreSQL           |
-| **POSTGRES\_DB**       | `postgres`            | Имя базы данных PostgreSQL, к которой подключается приложение |
-| **POSTGRES\_PORT**     | `5432`                | Порт PostgreSQL                                           |
-| **POSTGRES\_FOLDER**   | `/data/postgres_data` | Локальный путь/папка для хранения данных PostgreSQL       |
-| **APP\_PORT**          | `5000`                | Порт, на котором запускается само приложение              |
-| **ROOT\_FOLDER**       | `/data/root_folder`   | Папка для хранения файлов, которые загружают пользователи |
-| **DEBUG**              | `False`               | Режим отладки: `True` в разработке и `False` в продакшене |
+### docker-compose.yml
+```yaml
+services:
+  file-storage:
+    image: file-storage:latest
+    restart: unless-stopped
+    volumes:
+      - /root_folder:/root_folder
+    ports:
+      - "5000:80"
+    env_file:
+      - .env
 
-Сборка приложения:
-```sh
-docker build -t file-storage:latest .
-docker-compose up --build
+  file-storage-db:
+    image: postgres:13
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+      POSTGRES_DB: "postgres"
+    volumes:
+      - /postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
 ```
+
+### Пояснение к архитектуре
+`file-storage` - Flask приложение, предоставляющее API для работы с файлами
+
+`file-storage-db` - база данных PostgreSQL 
+
+### config.yaml
+```yaml
+root_folder: "/root_folder"
+debug: false
+
+postgres:
+  user: "postgres"
+  password: "postgres"
+  host: "file-storage-db"
+  db: "postgres"
+  folder: "/postgres_data"
+  port: 5432
+```
+
+### Переменные окружения
+- `APP_PORT=5000`
+- `APP_HOST="0.0.0.0"`
+- `YAML_PATH=/app/src/config/config.yaml`
 
 ---
 
@@ -54,6 +73,9 @@ docker-compose up --build
     "updated_at": "Wed, 17 Sep 2025 07:31:12 GMT"
 }
 ```
+
+**Ошибки**:
+- `400`- указан некорректный путь; файл уже существует
 
 ### Получение всех файлов
 **Запрос**: `GET /api/files`
@@ -100,6 +122,9 @@ docker-compose up --build
 }
 ```
 
+**Ошибки**:
+- `404` - файл не найден
+
 ### Обновление информации о файле
 **Запрос**: `PUT /api/files/12` `application/json`
 ```json
@@ -124,6 +149,11 @@ docker-compose up --build
 }
 ```
 
+**Ошибки**:
+- `400` - файл с таким именем уже существует; указан некорректный путь; файл уже существует в этой директории 
+- `404`- файл не найден
+- `500` - ошибка ОС при переименовании или перемещении файла
+
 ### Удаление файла
 **Запрос**: `DELETE /api/files/12`
 
@@ -140,6 +170,10 @@ docker-compose up --build
     "updated_at": "Wed, 17 Sep 2025 07:42:19 GMT"
 }
 ```
+
+**Ошибки**: 
+- `404`- файл не найден
+- `500` - ошибка ОС при удалении файла
 
 ### Скачивание файла
 **Запрос**: `GET /api/files/13/download`

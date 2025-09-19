@@ -1,7 +1,8 @@
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base, Session
+from sqlalchemy.orm import sessionmaker, Session
 
 from src.config import config
+from src.models import Base
 
 pg_engine = create_engine(
     f"postgresql+psycopg2://{config.postgres.user}:"
@@ -10,8 +11,7 @@ pg_engine = create_engine(
     f"{config.postgres.db}",
     echo=config.debug,
 )
-pg_session_maker = sessionmaker(bind=pg_engine)
-Base = declarative_base()
+pg_session_maker = sessionmaker(bind=pg_engine, expire_on_commit=False)
 
 
 def get_pg_session() -> Session:

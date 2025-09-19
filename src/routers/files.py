@@ -5,7 +5,7 @@ import flask
 from flask import jsonify, send_file, request
 from werkzeug.datastructures import FileStorage
 
-from src.dtos import FileUploadDTO, FileUpdateDTO
+from src.models import FileUploadDTO, FileUpdateDTO
 from src.injectors import services
 
 files_routers = flask.Blueprint(
