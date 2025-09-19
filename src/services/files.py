@@ -196,7 +196,7 @@ class FileService:
         return FileDTO.model_validate(file)
 
     @staticmethod
-    def get_abs_path(file: File) -> str:
+    def get_abs_path(file: FileDTO) -> str:
         return (
             config.root_folder + file.filepath + file.filename + file.extension
         )
