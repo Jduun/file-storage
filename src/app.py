@@ -1,5 +1,6 @@
 import os
 import logging
+from sqlite3 import adapters
 
 from flask import Flask, jsonify
 from flask.json.provider import DefaultJSONProvider
@@ -15,10 +16,6 @@ from src.routers import files_routers
 def setup_app() -> Flask:
     current_app = Flask(__name__)
     setup_pg()
-    if config.debug:
-        logging.basicConfig(level=logging.DEBUG)
-    else:
-        logging.basicConfig(level=logging.INFO)
     return current_app
 
 

@@ -43,7 +43,6 @@ postgres:
   password: "postgres"
   host: "file-storage-db"
   db: "postgres"
-  folder: "/postgres_data"
   port: 5432
 ```
 
