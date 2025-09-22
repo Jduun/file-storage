@@ -43,7 +43,6 @@ postgres:
   password: "postgres"
   host: "file-storage-db"
   db: "postgres"
-  port: 5432
 ```
 
 ### Переменные окружения

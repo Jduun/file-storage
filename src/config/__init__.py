@@ -10,7 +10,6 @@ class PostgresConfig(BaseSettings):
     password: str = Field(default="postgres")
     host: str = Field(default="file-storage-db")
     db: str = Field(default="db")
-    port: int = Field(default=5432)
 
 
 class AppConfig(BaseSettings):
