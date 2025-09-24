@@ -43,5 +43,6 @@ def handle_app_exception(e: ModuleException):
 if __name__ == "__main__":
     app.run(
         host=os.getenv("APP_HOST", "0.0.0.0"),
+        port=os.getenv("APP_PORT", 80),
         debug=config.debug,
     )

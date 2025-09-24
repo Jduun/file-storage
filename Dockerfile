@@ -9,4 +9,3 @@ COPY . .
 
 ENV PYTHONPATH=/app
 CMD ["uwsgi", "--ini", "uwsgi.ini"]
-# CMD ["python", "src/app.py"]

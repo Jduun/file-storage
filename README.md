@@ -46,8 +46,8 @@ postgres:
 ```
 
 ### Переменные окружения
-- `APP_PORT=5000`
-- `APP_HOST="0.0.0.0"`
+- `APP_PORT=80`
+- `APP_HOST=0.0.0.0`
 - `YAML_PATH=/app/src/config/config.yaml`
 
 ---
