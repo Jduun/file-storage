@@ -13,7 +13,6 @@ class DataLoggerAdapter(logging.LoggerAdapter):
 
 def setup_logger():
     logger = logging.getLogger("app")
-    logger.setLevel(logging.DEBUG)
 
     if config.debug:
         logger.setLevel(logging.DEBUG)

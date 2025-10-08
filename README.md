@@ -62,13 +62,13 @@ postgres:
 ```json
 {
     "comment": "Do you know what linked list is?",
-    "created_at": "Wed, 17 Sep 2025 07:31:12 GMT",
+    "created_at": "2025-09-17T07:31:12+00:00",
     "extension": ".pdf",
     "filename": "Шаблоны корпоративных прилож",
     "filepath": "/books/",
     "id": 13,
     "size_bytes": 57034527,
-    "updated_at": "Wed, 17 Sep 2025 07:31:12 GMT"
+    "updated_at": "2025-09-17T07:31:12+00:00"
 }
 ```
 
@@ -83,23 +83,23 @@ postgres:
 [
     {
         "comment": "Do you know what linked list is?",
-        "created_at": "Wed, 17 Sep 2025 07:28:29 GMT",
+        "created_at": "2025-09-17T07:28:29+00:00",
         "extension": ".pdf",
         "filename": "grokaem_algoritmyi",
         "filepath": "/books/",
         "id": 12,
         "size_bytes": 72825117,
-        "updated_at": "Wed, 17 Sep 2025 07:28:29 GMT"
+        "updated_at": "2025-09-17T07:28:29+00:00"
     },
     {
         "comment": "Learn patterns",
-        "created_at": "Wed, 17 Sep 2025 07:31:12 GMT",
+        "created_at": "2025-09-17T07:31:12+00:00",
         "extension": ".pdf",
         "filename": "Шаблоны корпоративных прилож",
         "filepath": "/books/",
         "id": 13,
         "size_bytes": 57034527,
-        "updated_at": "Wed, 17 Sep 2025 07:31:12 GMT"
+        "updated_at": "2025-09-17T07:31:12+00:00"
     }
 ]
 ```
@@ -110,13 +110,13 @@ postgres:
 ```json
 {
     "comment": "Do you know what linked list is?",
-    "created_at": "Wed, 17 Sep 2025 07:28:29 GMT",
+    "created_at": "2025-09-17T07:28:29+00:00",
     "extension": ".pdf",
     "filename": "grokaem_algoritmyi",
     "filepath": "/books/",
     "id": 12,
     "size_bytes": 72825117,
-    "updated_at": "Wed, 17 Sep 2025 07:28:29 GMT"
+    "updated_at": "2025-09-17T07:28:29+00:00"
 }
 ```
 
@@ -137,13 +137,13 @@ postgres:
 ```json
 {
     "comment": "Book about algorithms",
-    "created_at": "Wed, 17 Sep 2025 07:28:29 GMT",
+    "created_at": "2025-09-17T07:28:29+00:00",
     "extension": ".pdf",
     "filename": "grokaem",
     "filepath": "/algorithms/",
     "id": 12,
     "size_bytes": 72825117,
-    "updated_at": "Wed, 17 Sep 2025 07:28:29 GMT"
+    "updated_at": "2025-09-17T07:28:29+00:00"
 }
 ```
 
@@ -159,13 +159,13 @@ postgres:
 ```json
 {
     "comment": "Book about algorithms",
-    "created_at": "Wed, 17 Sep 2025 07:28:29 GMT",
+    "created_at": "2025-09-17T07:28:29+00:00",
     "extension": ".pdf",
     "filename": "grokaem",
     "filepath": "/algorithms/",
     "id": 12,
     "size_bytes": 72825117,
-    "updated_at": "Wed, 17 Sep 2025 07:42:19 GMT"
+    "updated_at": "2025-09-17T07:42:19+00:00"
 }
 ```
 

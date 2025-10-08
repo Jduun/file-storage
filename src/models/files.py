@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import Optional
 
 from pydantic import BaseModel, field_validator, Field, ConfigDict
-from sqlalchemy import String, func
+from sqlalchemy import String, func, TIMESTAMP
 from sqlalchemy.orm import mapped_column, Mapped, declarative_base
 
 Base = declarative_base()
@@ -19,9 +19,12 @@ class File(Base):
     filepath: Mapped[str] = mapped_column(nullable=False)
     comment: Mapped[str] = mapped_column(String(255))
     created_at: Mapped[datetime] = mapped_column(
-        server_default=func.current_timestamp(), nullable=False
+        TIMESTAMP(timezone=True),
+        server_default=func.current_timestamp(),
+        nullable=False,
     )
     updated_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True),
         server_default=func.current_timestamp(),
         onupdate=func.current_timestamp(),
     )
